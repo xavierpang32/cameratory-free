@@ -211,6 +211,21 @@
   .kit-thumbs .gear-thumb:first-child{margin-left:0;}
   .kit-more{width:40px;height:40px;border-radius:10px; margin-left:-10px; background:var(--surface-3); border:2px solid var(--surface); display:flex;align-items:center;justify-content:center; font-size:11px; color:var(--text-dim); font-weight:600;}
 
+  /* swipe-to-delete on kit cards */
+  .kit-card-wrap{position:relative; margin-bottom:12px; border-radius:var(--radius-l); overflow:hidden;}
+  .kit-card-wrap .kit-card{margin-bottom:0; position:relative; z-index:2; touch-action:pan-y; will-change:transform;}
+  .kit-card-wrap .kit-card.dragging{transition:none;}
+  .kit-card-wrap .kit-card.snapping{transition:transform .22s ease;}
+  .kit-card-delete-bg{
+    position:absolute; inset:0; z-index:1; border-radius:var(--radius-l);
+    background:var(--red); display:flex; justify-content:flex-end; align-items:stretch;
+  }
+  .kit-card-delete-btn{
+    width:84px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:5px; color:#fff; font-size:11.5px; font-weight:700; background:transparent; border:none;
+  }
+  .kit-card-delete-btn svg{width:19px;height:19px;}
+
   /* ---------- FAB ---------- */
   .fab{
     position:fixed; right:calc(50% - 280px + 20px); bottom:calc(env(safe-area-inset-bottom) + 78px);
@@ -985,10 +1000,13 @@ function renderKits(){
     var readyLabel = r.unavailable === 0 ? t("readyWord") : (r.total - r.unavailable)+"/"+r.total+" "+t("readyWord");
     var thumbs = r.items.slice(0,5).map(function(g){ return gearThumbHTML(g); }).join("");
     var extra = r.items.length > 5 ? '<div class="kit-more">+'+(r.items.length-5)+'</div>' : "";
-    return '<div class="kit-card" data-id="'+k.id+'">'+
-      '<div class="kit-top"><div><h4>'+escapeHtml(k.name)+'</h4><div class="kit-sub">'+(k.eventType? escapeHtml(k.eventType)+" · ": "")+tItemsCount(r.total)+'</div></div>'+
-      '<span class="kit-ready '+readyCls+'">'+readyLabel+'</span></div>'+
-      (r.total>0 ? '<div class="kit-thumbs">'+thumbs+extra+'</div>' : '')+
+    return '<div class="kit-card-wrap">'+
+      '<div class="kit-card-delete-bg"><button type="button" class="kit-card-delete-btn" data-id="'+k.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg><span>'+t("deleteLabel")+'</span></button></div>'+
+      '<div class="kit-card" data-id="'+k.id+'">'+
+        '<div class="kit-top"><div><h4>'+escapeHtml(k.name)+'</h4><div class="kit-sub">'+(k.eventType? escapeHtml(k.eventType)+" · ": "")+tItemsCount(r.total)+'</div></div>'+
+        '<span class="kit-ready '+readyCls+'">'+readyLabel+'</span></div>'+
+        (r.total>0 ? '<div class="kit-thumbs">'+thumbs+extra+'</div>' : '')+
+      '</div>'+
     '</div>';
   }).join("");
 }
@@ -1065,7 +1083,7 @@ function getCardTranslateX(card){
   return m ? parseFloat(m[1]) : 0;
 }
 
-function initSwipeToDelete(card, wrap){
+function initSwipeToDelete(card, wrap, onOpen){
   var startX = null, startY = 0, dragging = null, dragStartOffset = 0, currentX = 0;
 
   card.addEventListener("pointerdown", function(e){
@@ -1118,7 +1136,7 @@ function initSwipeToDelete(card, wrap){
   card.addEventListener("click", function(){
     if(card._dragMoved){ card._dragMoved = false; return; }
     if(getCardTranslateX(card) !== 0){ closeSwipe(wrap); return; }
-    openGearDetail(card.dataset.id);
+    onOpen(card.dataset.id);
   });
 }
 
@@ -1130,7 +1148,7 @@ function bindContentEvents(){
   document.querySelectorAll(".gear-card").forEach(function(card){
     var wrap = card.parentElement;
     if(wrap && wrap.classList.contains("gear-card-wrap")){
-      initSwipeToDelete(card, wrap);
+      initSwipeToDelete(card, wrap, openGearDetail);
     } else {
       card.addEventListener("click", function(){ openGearDetail(card.dataset.id); });
     }
@@ -1142,7 +1160,18 @@ function bindContentEvents(){
     });
   });
   document.querySelectorAll(".kit-card").forEach(function(card){
-    card.addEventListener("click", function(){ openKitDetail(card.dataset.id); });
+    var wrap = card.parentElement;
+    if(wrap && wrap.classList.contains("kit-card-wrap")){
+      initSwipeToDelete(card, wrap, openKitDetail);
+    } else {
+      card.addEventListener("click", function(){ openKitDetail(card.dataset.id); });
+    }
+  });
+  document.querySelectorAll(".kit-card-delete-btn").forEach(function(btn){
+    btn.addEventListener("click", function(e){
+      e.stopPropagation();
+      confirmDeleteKit(btn.dataset.id);
+    });
   });
   document.querySelectorAll("[data-open-gear]").forEach(function(row){
     row.addEventListener("click", function(){ openGearDetail(row.dataset.id); });
