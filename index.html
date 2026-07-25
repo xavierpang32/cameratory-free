@@ -599,7 +599,7 @@ en: {
   addGearTitle:"Add Gear", editGearTitle:"Edit Gear",
   fieldName:"Name", namePlaceholder:"e.g. Canon EOS R5, Kodak Portra 400",
   fieldCategory:"Category", fieldSerial:"Serial Number",
-  fieldPhotos:"Photos — gear condition", photoAdd:"Add",
+  fieldPhotos:"Photos — gear condition", photoAdd:"Add", photoAddCamera:"Camera", photoAddGallery:"Gallery",
   fieldCondition:"Condition", fieldCurrentStatus:"Current Status",
   fieldLoanedTo:"Loaned To", loanedToPlaceholder:"Name / contact",
   fieldLocation:"Storage Location", locationPlaceholder:"e.g. Shelf 2, Bag A",
@@ -659,7 +659,7 @@ zh: {
   addGearTitle:"添加器材", editGearTitle:"编辑器材",
   fieldName:"名称", namePlaceholder:"例如 Canon EOS R5、Kodak Portra 400",
   fieldCategory:"类别", fieldSerial:"序列号",
-  fieldPhotos:"照片 — 器材状况", photoAdd:"添加",
+  fieldPhotos:"照片 — 器材状况", photoAdd:"添加", photoAddCamera:"拍照", photoAddGallery:"相册",
   fieldCondition:"状况", fieldCurrentStatus:"当前状态",
   fieldLoanedTo:"借给", loanedToPlaceholder:"姓名/联系方式",
   fieldLocation:"存放位置", locationPlaceholder:"例如 2号架、A背包",
@@ -1688,7 +1688,8 @@ function renderPhotoStrip(){
   var html = state.formPhotos.map(function(p, idx){
     return '<div class="photo-thumb"><img src="'+p+'"><button type="button" data-idx="'+idx+'" class="removePhoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>';
   }).join("");
-  html += '<div class="add-photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5A1.5 1.5 0 015.5 7h1.6l1-1.6A1.5 1.5 0 019.4 4.6h5.2a1.5 1.5 0 011.3.8l1 1.6h1.6A1.5 1.5 0 0120 8.5v9A1.5 1.5 0 0118.5 19h-13A1.5 1.5 0 014 17.5v-9z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>'+t("photoAdd")+'</span><input type="file" accept="image/*" id="photoInput"></div>';
+  html += '<div class="add-photo" id="addPhotoCamera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="13" rx="2.2"/><circle cx="12" cy="13.4" r="4"/><path d="M8.5 7L10 4.3h4L15.5 7"/></svg><span>'+t("photoAddCamera")+'</span><input type="file" accept="image/*" capture="environment" id="photoInputCamera"></div>';
+  html += '<div class="add-photo" id="addPhotoGallery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15l-5.5-5.5a1.5 1.5 0 00-2.1 0L4 19"/></svg><span>'+t("photoAddGallery")+'</span><input type="file" accept="image/*" id="photoInputGallery"></div>';
   wrap.innerHTML = html;
   wrap.querySelectorAll(".removePhoto").forEach(function(btn){
     btn.addEventListener("click", function(){
@@ -1696,8 +1697,9 @@ function renderPhotoStrip(){
       renderPhotoStrip();
     });
   });
-  var input = document.getElementById("photoInput");
-  if(input){
+  function wireInput(id){
+    var input = document.getElementById(id);
+    if(!input) return;
     input.addEventListener("change", function(e){
       var file = e.target.files[0];
       if(!file) return;
@@ -1707,6 +1709,8 @@ function renderPhotoStrip(){
       }).catch(function(){ toast(t("toastCouldntReadPhoto")); });
     });
   }
+  wireInput("photoInputCamera");
+  wireInput("photoInputGallery");
 }
 
 function renderServiceRows(){
