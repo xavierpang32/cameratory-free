@@ -6,24 +6,31 @@ A self-contained web app for tracking your camera gear, condition photos, servic
 - `index.html` — the app itself
 - `manifest.json`, `service-worker.js`, `icon*.png/svg` — make it installable as a home-screen app with an offline-capable icon
 
-## Option A — Zero setup on Android, use it right now
+## Option A — Use the hosted version (recommended for most people)
+Camera-tory is already hosted on GitHub Pages, so there's nothing to set up.
+1. Open this link on your phone: **https://xavierpang32.github.io/cameratory-free/**
+2. **On Android (Chrome):** you'll see an **Install app** prompt, or use the ⋮ menu → **Install app**.
+3. **On iPhone/iPad (Safari):** tap the **Share** button (square with an arrow) → **Add to Home Screen** → confirm the name and tap **Add**. Chrome/Edge on iOS can do this too, but Safari is the most reliable path. There's no automatic install prompt on iOS — it's a couple of manual taps every time on a new device, and Apple doesn't offer a way to shortcut that.
+
+Either way, it installs like a native app from then on — its own home-screen icon, full-screen with no browser address bar, and works offline once it's loaded the first time. All your gear, photos, and kits are still stored only on your device, never uploaded anywhere.
+
+## Option B — Zero setup, run it locally on your own phone
+For Android only, and only worth it if you'd rather not depend on GitHub being reachable, or want the app fully offline from the very first launch.
 1. Copy this whole folder onto your Android phone (e.g. via a USB cable, Google Drive, or emailing it to yourself).
 2. Open `index.html` with **Chrome**.
 3. Tap Chrome's ⋮ menu → **Add to Home screen**. You now have an app icon on your home screen.
 
 This works fully — adding gear, taking photos, building kits, everything persists on the device. The only limitation is the "Add to Home Screen" shortcut opens inside a regular Chrome tab rather than a fully chrome-less standalone window, since `file://` pages skip some installability checks.
 
-**This local-file shortcut isn't reliable on iOS** — Safari's handling of local files doesn't consistently support the storage and offline features this app needs. iPhone/iPad users should go straight to Option B below.
+**This local-file approach isn't reliable on iOS** — Safari's handling of local files doesn't consistently support the storage and offline features this app needs. iPhone/iPad users should use Option A or C instead.
 
-## Option B — True installable PWA (recommended, required for iOS)
-Host the folder somewhere with a real URL, then it installs like a proper app (own window, works offline, icon matches your phone's other apps). Any static host works and all of these have free tiers:
+## Option C — Host your own separate copy
+Only needed if you want to customize or fork the app, or just don't want to rely on the link in Option A. Any static host works and all of these have free tiers:
 - **GitHub Pages** — create a repo, upload these files, enable Pages in Settings.
 - **Netlify Drop** — netlify.com/drop, literally drag this folder in, get a URL instantly.
 - **Vercel** — similar drag-and-drop / CLI deploy.
 
-**On Android:** open the URL in Chrome → you'll see an **Install app** prompt (or ⋮ menu → **Install app**). It behaves exactly like a native app from then on, including offline use.
-
-**On iPhone/iPad:** open the URL in **Safari** (Chrome/Edge on iOS work too, but Safari is the most reliable) → tap the **Share** button (square with an arrow) → **Add to Home Screen** → confirm the name and tap **Add**. There's no automatic install prompt on iOS — it's a manual couple of taps every time for a new device, and Apple doesn't offer a way to shortcut that. Once added, it opens full-screen with no Safari toolbar, same as the Android install. Camera capture, offline caching, and all your saved data work the same as on Android.
+Once hosted, installation works exactly like Option A — open your own URL in Chrome on Android or Safari on iOS and follow the same install steps above.
 
 ## Using the app
 
@@ -39,7 +46,7 @@ Host the folder somewhere with a real URL, then it installs like a proper app (o
 
 **Settings (☰ icon, top right)** — switch the app's language (English or 简体中文 Simplified Chinese), export a full JSON backup (including photos), or import one back in. Since all data lives only in this browser/device, it's worth exporting a backup occasionally — especially before clearing browser data or switching phones. This matters a bit more on iOS: Safari is historically stricter than Chrome about evicting site storage after long inactivity, though apps added to the home screen are exempted from its more aggressive cutoffs. Either way, an occasional backup is cheap insurance.
 
-**About tab** — app info, version, and a credits section linking to this project's GitHub repo ([github.com/xavierpang32/kitlog-free](https://github.com/xavierpang32/kitlog-free)).
+**About tab** — app info, version, and a credits section linking to this project's page ([xavierpang32.github.io/cameratory-free](https://xavierpang32.github.io/cameratory-free/)).
 
 ## Notes on photos
 Tapping "Add" on a photo opens your camera directly (or your gallery, depending on your phone). Photos are automatically resized and compressed before saving so your gear list stays fast even with lots of items.
