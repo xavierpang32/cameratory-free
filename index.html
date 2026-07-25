@@ -105,14 +105,32 @@
   }
   .chip.active{background:var(--accent); border-color:var(--accent); color:#12241a; font-weight:600;}
 
-  .sort-row{display:flex; justify-content:flex-end; gap:8px; margin-top:8px;}
-  #sortSelect, #statusFilterSelect{
+  .sort-row{display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:8px;}
+  #sortSelect, #statusFilterSelect, #kitSortSelect{
     flex-shrink:0; min-width:0; padding:6px 11px;
     background:var(--surface); border:1px solid var(--border); border-radius:100px;
     color:var(--text-dim); font-size:11.5px; font-family:var(--font-mono);
     color-scheme:dark;
   }
-  #sortSelect:focus, #statusFilterSelect:focus{outline:2px solid var(--accent-dim); border-color:var(--accent);}
+  #sortSelect:focus, #statusFilterSelect:focus, #kitSortSelect:focus{outline:2px solid var(--accent-dim); border-color:var(--accent);}
+
+  #kitFilterArea{display:none;}
+
+  /* selection toolbar — replaces the sort-row controls while in multi-select mode */
+  .select-toolbar{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px;}
+  .select-toolbar .count{font-size:12.5px; color:var(--text-dim); font-weight:600;}
+  .select-toolbar .actions{display:flex; align-items:center; gap:8px;}
+  .select-delete-btn{
+    display:flex; align-items:center; gap:6px; padding:6px 14px; border-radius:100px;
+    background:var(--red-dim); color:#ffd7d1; font-size:12px; font-weight:700; border:1px solid var(--red-dim);
+  }
+  .select-delete-btn:disabled{opacity:0.45;}
+  .select-delete-btn svg{width:14px;height:14px;}
+  .select-cancel-btn{
+    width:30px;height:30px;border-radius:50%; background:var(--surface-2); border:1px solid var(--border);
+    color:var(--text-dim); display:flex; align-items:center; justify-content:center;
+  }
+  .select-cancel-btn svg{width:14px;height:14px;}
 
   /* ---------- Tab bar ---------- */
   nav.tabbar{
@@ -148,20 +166,45 @@
     background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-m);
   }
 
-  /* swipe-to-delete on inventory cards */
-  .gear-card-wrap{position:relative; margin-bottom:10px; border-radius:var(--radius-m); overflow:hidden;}
-  .gear-card-wrap .gear-card{margin-bottom:0; position:relative; z-index:2; touch-action:pan-y; will-change:transform;}
+  /* swipe gestures on inventory cards: left = reorder, right = select.
+     Structure: .gear-card-wrap (plain, becomes position:fixed while dragging to reorder)
+       > .card-clip (overflow:hidden, clips the horizontal swipe reveal)
+         > .card-move-bg (revealed panel) + .gear-card (slides via translateX) */
+  .gear-card-wrap{margin-bottom:10px;}
+  .card-clip{position:relative; border-radius:var(--radius-m); overflow:hidden;}
+  .gear-card-wrap .gear-card{margin-bottom:0; position:relative; z-index:2; touch-action:pan-y; will-change:transform; border-radius:var(--radius-m);}
   .gear-card-wrap .gear-card.dragging{transition:none;}
   .gear-card-wrap .gear-card.snapping{transition:transform .22s ease;}
-  .gear-card-delete-bg{
+  .gear-card-wrap.selected .gear-card{border-color:var(--accent); background:var(--accent-dim);}
+  .gear-card-wrap.reordering{z-index:50; position:fixed; margin-bottom:0; pointer-events:none;}
+  .gear-card-wrap.reordering .card-clip{box-shadow:0 10px 24px rgba(0,0,0,0.45);}
+  .gear-card-wrap.reordering .gear-card{border-color:var(--accent);}
+  .card-move-bg{
     position:absolute; inset:0; z-index:1; border-radius:var(--radius-m);
-    background:var(--red); display:flex; justify-content:flex-end; align-items:stretch;
+    display:flex; justify-content:space-between; align-items:stretch;
   }
-  .gear-card-delete-btn{
+  .card-select-hint{
     width:84px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:5px; color:#fff; font-size:11.5px; font-weight:700; background:transparent; border:none;
+    gap:5px; color:var(--accent); font-size:11.5px; font-weight:700; background:var(--accent-dim);
+    border-radius:var(--radius-m) 0 0 var(--radius-m);
   }
-  .gear-card-delete-btn svg{width:19px;height:19px;}
+  .card-select-hint svg{width:19px;height:19px;}
+  .card-move-handle{
+    width:84px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:5px; color:var(--text-dim); font-size:11.5px; font-weight:700; background:var(--surface-3); border:none;
+    touch-action:none; border-radius:0 var(--radius-m) var(--radius-m) 0;
+  }
+  .card-move-handle svg{width:19px;height:19px;}
+  .card-select-check{
+    display:none; width:22px;height:22px;border-radius:50%; flex-shrink:0;
+    border:1.5px solid var(--border); background:var(--surface); align-items:center; justify-content:center;
+    margin-right:2px;
+  }
+  .gear-card-wrap.select-mode .card-select-check, .kit-card-wrap.select-mode .card-select-check{display:flex;}
+  .gear-card-wrap.selected .card-select-check, .kit-card-wrap.selected .card-select-check{background:var(--accent); border-color:var(--accent);}
+  .card-select-check svg{width:13px;height:13px; color:#12241a;}
+  .reorder-placeholder{border-radius:var(--radius-m); background:var(--surface-2); border:1.5px dashed var(--border);}
+
 
   .gear-thumb{
     width:58px;height:58px;border-radius:var(--radius-s); flex-shrink:0;
@@ -200,7 +243,8 @@
     background:linear-gradient(145deg, var(--surface-2), var(--surface));
     border:1px solid var(--border);
   }
-  .kit-card .kit-top{display:flex; justify-content:space-between; align-items:flex-start;}
+  .kit-card .kit-top{display:flex; align-items:flex-start; gap:8px;}
+  .kit-card .kit-top-info{flex:1; min-width:0;}
   .kit-card h4{margin:0 0 2px; font-size:16px;}
   .kit-card .kit-sub{font-size:11.5px; color:var(--text-faint); font-family:var(--font-mono);}
   .kit-ready{font-size:11px; padding:4px 10px; border-radius:100px; font-weight:700; font-family:var(--font-mono); white-space:nowrap;}
@@ -211,20 +255,18 @@
   .kit-thumbs .gear-thumb:first-child{margin-left:0;}
   .kit-more{width:40px;height:40px;border-radius:10px; margin-left:-10px; background:var(--surface-3); border:2px solid var(--surface); display:flex;align-items:center;justify-content:center; font-size:11px; color:var(--text-dim); font-weight:600;}
 
-  /* swipe-to-delete on kit cards */
-  .kit-card-wrap{position:relative; margin-bottom:12px; border-radius:var(--radius-l); overflow:hidden;}
-  .kit-card-wrap .kit-card{margin-bottom:0; position:relative; z-index:2; touch-action:pan-y; will-change:transform;}
+  /* swipe gestures on kit cards: left = reorder, right = select (same structure as gear cards) */
+  .kit-card-wrap{margin-bottom:12px;}
+  .kit-card-wrap .card-clip{border-radius:var(--radius-l);}
+  .kit-card-wrap .kit-card{margin-bottom:0; position:relative; z-index:2; touch-action:pan-y; will-change:transform; border-radius:var(--radius-l);}
   .kit-card-wrap .kit-card.dragging{transition:none;}
   .kit-card-wrap .kit-card.snapping{transition:transform .22s ease;}
-  .kit-card-delete-bg{
-    position:absolute; inset:0; z-index:1; border-radius:var(--radius-l);
-    background:var(--red); display:flex; justify-content:flex-end; align-items:stretch;
-  }
-  .kit-card-delete-btn{
-    width:84px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:5px; color:#fff; font-size:11.5px; font-weight:700; background:transparent; border:none;
-  }
-  .kit-card-delete-btn svg{width:19px;height:19px;}
+  .kit-card-wrap.selected .kit-card{border-color:var(--accent);}
+  .kit-card-wrap.reordering{z-index:50; position:fixed; margin-bottom:0; pointer-events:none;}
+  .kit-card-wrap.reordering .card-clip{box-shadow:0 10px 24px rgba(0,0,0,0.45);}
+  .kit-card-wrap .card-move-bg{border-radius:var(--radius-l);}
+  .kit-card-wrap .card-select-hint{border-radius:var(--radius-l) 0 0 var(--radius-l);}
+  .kit-card-wrap .card-move-handle{border-radius:0 var(--radius-l) var(--radius-l) 0;}
 
   /* ---------- FAB ---------- */
   .fab{
@@ -417,21 +459,51 @@
         </select>
       </div>
       <div class="chip-row" id="categoryChips"></div>
-      <div class="sort-row">
-        <select id="statusFilterSelect" aria-label="Filter by status">
-          <option value="All" selected>All Statuses</option>
-          <option value="In Storage">In Storage</option>
-          <option value="In Use">In Use</option>
-          <option value="On Loan">On Loan</option>
-          <option value="In Repair">In Repair</option>
-          <option value="Retired / Sold">Retired / Sold</option>
-        </select>
-        <select id="sortSelect" aria-label="Sort">
-          <option value="createdDesc" selected>Newest</option>
-          <option value="createdAsc">Oldest</option>
-          <option value="nameAsc">A → Z</option>
-          <option value="nameDesc">Z → A</option>
-        </select>
+      <div class="sort-row" id="gearSortRow">
+        <div id="gearFilterControls" style="display:flex; gap:8px;">
+          <select id="statusFilterSelect" aria-label="Filter by status">
+            <option value="All" selected>All Statuses</option>
+            <option value="In Storage">In Storage</option>
+            <option value="In Use">In Use</option>
+            <option value="On Loan">On Loan</option>
+            <option value="In Repair">In Repair</option>
+            <option value="Retired / Sold">Retired / Sold</option>
+          </select>
+          <select id="sortSelect" aria-label="Sort">
+            <option value="createdDesc" selected>Newest</option>
+            <option value="createdAsc">Oldest</option>
+            <option value="custom">Custom</option>
+            <option value="nameAsc">A → Z</option>
+            <option value="nameDesc">Z → A</option>
+          </select>
+        </div>
+        <div id="gearSelectToolbar" class="select-toolbar" style="display:none;">
+          <span class="count" id="gearSelectCount"></span>
+          <div class="actions">
+            <button type="button" class="select-delete-btn" id="gearSelectDeleteBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg><span id="gearSelectDeleteLabel"></span></button>
+            <button type="button" class="select-cancel-btn" id="gearSelectCancelBtn" aria-label="Cancel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="kitFilterArea">
+      <div class="sort-row" id="kitSortRow">
+        <div id="kitFilterControls" style="display:flex; gap:8px;">
+          <select id="kitSortSelect" aria-label="Sort">
+            <option value="createdDesc" selected>Newest</option>
+            <option value="createdAsc">Oldest</option>
+            <option value="custom">Custom</option>
+            <option value="nameAsc">A → Z</option>
+            <option value="nameDesc">Z → A</option>
+          </select>
+        </div>
+        <div id="kitSelectToolbar" class="select-toolbar" style="display:none;">
+          <span class="count" id="kitSelectCount"></span>
+          <div class="actions">
+            <button type="button" class="select-delete-btn" id="kitSelectDeleteBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg><span id="kitSelectDeleteLabel"></span></button>
+            <button type="button" class="select-cancel-btn" id="kitSelectCancelBtn" aria-label="Cancel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -513,6 +585,8 @@ en: {
   sortAria:"Sort", sortNewest:"Newest", sortOldest:"Oldest", sortNameAsc:"Name A–Z", sortNameDesc:"Name Z–A",
   statusFilterAria:"Filter by status", statusFilterAll:"All Statuses",
   deleteLabel:"Delete",
+  sortCustom:"Custom", toolbarSelectedCount:"{n} selected", cancelLabel:"Cancel", moveAria:"Reorder", selectLabel:"Select",
+  confirmDeleteSelected:"Delete {n} item(s)? This cannot be undone.",
   tabInventory:"Inventory", tabKits:"Kits", tabOverview:"Overview", tabAbout:"About",
   addAria:"Add", settingsAria:"Settings",
   emptyNoGearTitle:"No gear logged yet", emptyNoGearBody:"Tap the + button to add your first<br>camera, lens, or accessory.",
@@ -571,6 +645,8 @@ zh: {
   sortAria:"排序", sortNewest:"最新", sortOldest:"最早", sortNameAsc:"名称 A–Z", sortNameDesc:"名称 Z–A",
   statusFilterAria:"按状态筛选", statusFilterAll:"所有状态",
   deleteLabel:"删除",
+  sortCustom:"自定义", toolbarSelectedCount:"已选 {n} 项", cancelLabel:"取消", moveAria:"重新排序", selectLabel:"选择",
+  confirmDeleteSelected:"删除 {n} 项？此操作无法撤销。",
   tabInventory:"库存", tabKits:"套装", tabOverview:"概览", tabAbout:"关于",
   addAria:"添加", settingsAria:"设置",
   emptyNoGearTitle:"暂无器材记录", emptyNoGearBody:"点击 + 按钮添加您的第一台<br>相机、镜头或配件。",
@@ -723,8 +799,15 @@ var state = {
   search: "",
   searchField: "name",
   sortBy: "createdDesc",
+  kitSortBy: "createdDesc",
   categoryFilter: "All",
   statusFilter: "All",
+  gearCustomOrder: [],
+  kitCustomOrder: [],
+  gearSelectMode: false,
+  gearSelectedIds: [],
+  kitSelectMode: false,
+  kitSelectedIds: [],
   formPhotos: [],
   formServices: [],
   editingGearId: null,
@@ -799,12 +882,32 @@ function loadAll(){
     state.kits = r[1].sort(function(a,b){ return (b.updatedAt||0) - (a.updatedAt||0); });
   });
 }
+var VALID_SORTS = ["createdDesc", "createdAsc", "custom", "nameAsc", "nameDesc"];
 function loadSettings(){
-  return dbGet("settings","language").then(function(r){
-    var saved = r && r.value;
+  return Promise.all([
+    dbGet("settings","language"),
+    dbGet("settings","gearCustomOrder"),
+    dbGet("settings","kitCustomOrder"),
+    dbGet("settings","sortBy"),
+    dbGet("settings","kitSortBy")
+  ]).then(function(r){
+    var saved = r[0] && r[0].value;
     var valid = LANGUAGES.some(function(l){ return l.code === saved; });
     state.language = valid ? saved : "en";
-  }).catch(function(){ /* fresh DB, default already set */ });
+    state.gearCustomOrder = (r[1] && Array.isArray(r[1].value)) ? r[1].value : [];
+    state.kitCustomOrder = (r[2] && Array.isArray(r[2].value)) ? r[2].value : [];
+    state.sortBy = (r[3] && VALID_SORTS.indexOf(r[3].value) !== -1) ? r[3].value : "createdDesc";
+    state.kitSortBy = (r[4] && VALID_SORTS.indexOf(r[4].value) !== -1) ? r[4].value : "createdDesc";
+  }).catch(function(){ /* fresh DB, defaults already set */ });
+}
+function saveCustomOrder(kind, order){
+  var key = kind === "kit" ? "kitCustomOrder" : "gearCustomOrder";
+  if(kind === "kit") state.kitCustomOrder = order; else state.gearCustomOrder = order;
+  dbPut("settings", {key:key, value:order});
+}
+function saveSortBy(kind, value){
+  var key = kind === "kit" ? "kitSortBy" : "sortBy";
+  dbPut("settings", {key:key, value:value});
 }
 function getGear(id){ return state.gear.find(function(g){ return g.id === id; }); }
 function getKit(id){ return state.kits.find(function(k){ return k.id === id; }); }
@@ -837,8 +940,17 @@ function applyStaticTranslations(){
   sortSel.setAttribute("aria-label", t("sortAria"));
   sortSel.options[0].textContent = t("sortNewest");
   sortSel.options[1].textContent = t("sortOldest");
-  sortSel.options[2].textContent = t("sortNameAsc");
-  sortSel.options[3].textContent = t("sortNameDesc");
+  sortSel.options[2].textContent = t("sortCustom");
+  sortSel.options[3].textContent = t("sortNameAsc");
+  sortSel.options[4].textContent = t("sortNameDesc");
+
+  var kitSortSel = document.getElementById("kitSortSelect");
+  kitSortSel.setAttribute("aria-label", t("sortAria"));
+  kitSortSel.options[0].textContent = t("sortNewest");
+  kitSortSel.options[1].textContent = t("sortOldest");
+  kitSortSel.options[2].textContent = t("sortCustom");
+  kitSortSel.options[3].textContent = t("sortNameAsc");
+  kitSortSel.options[4].textContent = t("sortNameDesc");
 
   var statusSel = document.getElementById("statusFilterSelect");
   statusSel.setAttribute("aria-label", t("statusFilterAria"));
@@ -862,6 +974,7 @@ function setTab(tab){
     b.classList.toggle("active", b.dataset.tab === tab);
   });
   document.getElementById("searchArea").style.display = (tab === "inventory") ? "" : "none";
+  document.getElementById("kitFilterArea").style.display = (tab === "kits") ? "block" : "none";
   document.getElementById("fabBtn").style.display = (tab === "inventory" || tab === "kits") ? "" : "none";
   render();
 }
@@ -924,7 +1037,36 @@ function sortGearList(list){
     sorted.sort(function(a,b){ return b.name.localeCompare(a.name); });
   } else if(state.sortBy === "createdAsc"){
     sorted.sort(function(a,b){ return (a.createdAt||0) - (b.createdAt||0); });
+  } else if(state.sortBy === "custom"){
+    sortByCustomOrder(sorted, state.gearCustomOrder);
   } else { // "createdDesc" default
+    sorted.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
+  }
+  return sorted;
+}
+
+function sortByCustomOrder(list, order){
+  list.sort(function(a,b){
+    var ia = order.indexOf(a.id), ib = order.indexOf(b.id);
+    if(ia===-1 && ib===-1) return (b.createdAt||0) - (a.createdAt||0);
+    if(ia===-1) return 1;
+    if(ib===-1) return -1;
+    return ia-ib;
+  });
+  return list;
+}
+
+function sortKitList(list){
+  var sorted = list.slice();
+  if(state.kitSortBy === "nameAsc"){
+    sorted.sort(function(a,b){ return a.name.localeCompare(b.name); });
+  } else if(state.kitSortBy === "nameDesc"){
+    sorted.sort(function(a,b){ return b.name.localeCompare(a.name); });
+  } else if(state.kitSortBy === "createdAsc"){
+    sorted.sort(function(a,b){ return (a.createdAt||0) - (b.createdAt||0); });
+  } else if(state.kitSortBy === "custom"){
+    sortByCustomOrder(sorted, state.kitCustomOrder);
+  } else {
     sorted.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
   }
   return sorted;
@@ -954,6 +1096,7 @@ function gearThumbHTML(item, size){
 
 function renderInventory(){
   var list = filteredGear();
+  renderGearFilterRow();
   if(state.gear.length === 0){
     return '<div class="empty">'+
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="7" width="19" height="13" rx="2.2"/><circle cx="12" cy="13.4" r="4"/></svg>'+
@@ -964,16 +1107,21 @@ function renderInventory(){
   }
   return list.map(function(g){
     var st = STATUSES.find(function(s){ return s.v === g.status; }) || STATUSES[0];
-    return '<div class="gear-card-wrap">'+
-      '<div class="gear-card-delete-bg"><button type="button" class="gear-card-delete-btn" data-id="'+g.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg><span>'+t("deleteLabel")+'</span></button></div>'+
-      '<div class="gear-card" data-id="'+g.id+'">'+
-        gearThumbHTML(g)+
-        '<div class="gear-info">'+
-          '<div class="row1"><h4>'+escapeHtml(g.name)+'</h4></div>'+
-          (g.serialNumber ? '<div class="gear-meta">SN '+escapeHtml(g.serialNumber)+'</div>' : '')+
-          '<div class="badge-row">'+
-            '<span class="pill cat">'+escapeHtml(tCat(g.category))+'</span>'+
-            '<span class="pill '+st.cls+'"><span class="dot"></span>'+escapeHtml(tStat(g.status))+'</span>'+
+    var selected = state.gearSelectedIds.indexOf(g.id) !== -1;
+    var wrapCls = "gear-card-wrap" + (state.gearSelectMode ? " select-mode" : "") + (selected ? " selected" : "");
+    return '<div class="'+wrapCls+'" data-id="'+g.id+'">'+
+      '<div class="card-clip">'+
+        '<div class="card-move-bg"><div class="card-select-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>'+t("selectLabel")+'</span></div><button type="button" class="card-move-handle" data-id="'+g.id+'" aria-label="'+t("moveAria")+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></svg></button></div>'+
+        '<div class="gear-card" data-id="'+g.id+'">'+
+          '<div class="card-select-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>'+
+          gearThumbHTML(g)+
+          '<div class="gear-info">'+
+            '<div class="row1"><h4>'+escapeHtml(g.name)+'</h4></div>'+
+            (g.serialNumber ? '<div class="gear-meta">SN '+escapeHtml(g.serialNumber)+'</div>' : '')+
+            '<div class="badge-row">'+
+              '<span class="pill cat">'+escapeHtml(tCat(g.category))+'</span>'+
+              '<span class="pill '+st.cls+'"><span class="dot"></span>'+escapeHtml(tStat(g.status))+'</span>'+
+            '</div>'+
           '</div>'+
         '</div>'+
       '</div>'+
@@ -989,23 +1137,32 @@ function kitReadiness(kit){
 }
 
 function renderKits(){
+  renderKitFilterRow();
   if(state.kits.length === 0){
     return '<div class="empty">'+
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 8.5l8-4 8 4-8 4-8-4z"/><path d="M4 8.5v7l8 4 8-4v-7"/></svg>'+
       '<h3>'+t("emptyNoKitsTitle")+'</h3><p>'+t("emptyNoKitsBody")+'</p></div>';
   }
-  return state.kits.map(function(k){
+  var list = sortKitList(state.kits);
+  return list.map(function(k){
     var r = kitReadiness(k);
     var readyCls = r.unavailable === 0 ? "all" : "some";
     var readyLabel = r.unavailable === 0 ? t("readyWord") : (r.total - r.unavailable)+"/"+r.total+" "+t("readyWord");
     var thumbs = r.items.slice(0,5).map(function(g){ return gearThumbHTML(g); }).join("");
     var extra = r.items.length > 5 ? '<div class="kit-more">+'+(r.items.length-5)+'</div>' : "";
-    return '<div class="kit-card-wrap">'+
-      '<div class="kit-card-delete-bg"><button type="button" class="kit-card-delete-btn" data-id="'+k.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg><span>'+t("deleteLabel")+'</span></button></div>'+
-      '<div class="kit-card" data-id="'+k.id+'">'+
-        '<div class="kit-top"><div><h4>'+escapeHtml(k.name)+'</h4><div class="kit-sub">'+(k.eventType? escapeHtml(k.eventType)+" · ": "")+tItemsCount(r.total)+'</div></div>'+
-        '<span class="kit-ready '+readyCls+'">'+readyLabel+'</span></div>'+
-        (r.total>0 ? '<div class="kit-thumbs">'+thumbs+extra+'</div>' : '')+
+    var selected = state.kitSelectedIds.indexOf(k.id) !== -1;
+    var wrapCls = "kit-card-wrap" + (state.kitSelectMode ? " select-mode" : "") + (selected ? " selected" : "");
+    return '<div class="'+wrapCls+'" data-id="'+k.id+'">'+
+      '<div class="card-clip">'+
+        '<div class="card-move-bg"><div class="card-select-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>'+t("selectLabel")+'</span></div><button type="button" class="card-move-handle" data-id="'+k.id+'" aria-label="'+t("moveAria")+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></svg></button></div>'+
+        '<div class="kit-card" data-id="'+k.id+'">'+
+          '<div class="kit-top">'+
+            '<div class="card-select-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>'+
+            '<div class="kit-top-info"><h4>'+escapeHtml(k.name)+'</h4><div class="kit-sub">'+(k.eventType? escapeHtml(k.eventType)+" · ": "")+tItemsCount(r.total)+'</div></div>'+
+            '<span class="kit-ready '+readyCls+'">'+readyLabel+'</span>'+
+          '</div>'+
+          (r.total>0 ? '<div class="kit-thumbs">'+thumbs+extra+'</div>' : '')+
+        '</div>'+
       '</div>'+
     '</div>';
   }).join("");
@@ -1071,9 +1228,10 @@ function renderAbout(){
 /* ============ content event binding ============ */
 var openSwipeWrap = null;
 var SWIPE_REVEAL = 84;
+var SELECT_THRESHOLD = 50;
 
 function closeSwipe(wrap){
-  var c = wrap.querySelector(".gear-card");
+  var c = wrap.querySelector(".gear-card, .kit-card");
   if(c){ c.classList.add("snapping"); c.style.transform = "translateX(0px)"; }
   if(openSwipeWrap === wrap) openSwipeWrap = null;
 }
@@ -1083,11 +1241,35 @@ function getCardTranslateX(card){
   return m ? parseFloat(m[1]) : 0;
 }
 
-function initSwipeToDelete(card, wrap, onOpen){
+function isSelectModeActive(kind){
+  return kind === "kit" ? state.kitSelectMode : state.gearSelectMode;
+}
+
+function toggleSelect(kind, id){
+  var arr = kind === "kit" ? state.kitSelectedIds : state.gearSelectedIds;
+  var idx = arr.indexOf(id);
+  if(idx === -1) arr.push(id); else arr.splice(idx, 1);
+  if(arr.length === 0){
+    if(kind === "kit") state.kitSelectMode = false; else state.gearSelectMode = false;
+  }
+  render();
+}
+
+function enterSelectAndToggle(kind, id){
+  if(kind === "kit") state.kitSelectMode = true; else state.gearSelectMode = true;
+  toggleSelect(kind, id);
+}
+
+/* Bidirectional swipe on a card: left reveals the reorder handle (stays open until
+   used or dismissed), right past a threshold enters/updates multi-select mode and
+   springs back closed immediately. Disabled entirely while select mode is active,
+   since taps alone drive selection at that point. */
+function initCardSwipe(card, wrap, kind, onOpen){
   var startX = null, startY = 0, dragging = null, dragStartOffset = 0, currentX = 0;
 
   card.addEventListener("pointerdown", function(e){
     if(e.button !== undefined && e.button !== 0) return;
+    if(isSelectModeActive(kind)) return;
     startX = e.clientX; startY = e.clientY;
     dragStartOffset = getCardTranslateX(card);
     currentX = dragStartOffset;
@@ -1110,8 +1292,8 @@ function initSwipeToDelete(card, wrap, onOpen){
     card._dragMoved = true;
     card.classList.add("dragging");
     var next = dragStartOffset + dx;
-    if(next > 0) next = 0;
     if(next < -SWIPE_REVEAL) next = -SWIPE_REVEAL;
+    if(next > SWIPE_REVEAL) next = SWIPE_REVEAL;
     currentX = next;
     card.style.transform = "translateX(" + next + "px)";
   });
@@ -1120,9 +1302,13 @@ function initSwipeToDelete(card, wrap, onOpen){
     if(dragging){
       card.classList.remove("dragging");
       card.classList.add("snapping");
-      if(currentX < -SWIPE_REVEAL/2){
+      if(currentX <= -SWIPE_REVEAL / 2){
         card.style.transform = "translateX(-" + SWIPE_REVEAL + "px)";
         openSwipeWrap = wrap;
+      } else if(currentX >= SELECT_THRESHOLD){
+        card.style.transform = "translateX(0px)";
+        if(openSwipeWrap === wrap) openSwipeWrap = null;
+        enterSelectAndToggle(kind, wrap.dataset.id);
       } else {
         card.style.transform = "translateX(0px)";
         if(openSwipeWrap === wrap) openSwipeWrap = null;
@@ -1135,8 +1321,9 @@ function initSwipeToDelete(card, wrap, onOpen){
 
   card.addEventListener("click", function(){
     if(card._dragMoved){ card._dragMoved = false; return; }
+    if(isSelectModeActive(kind)){ toggleSelect(kind, wrap.dataset.id); return; }
     if(getCardTranslateX(card) !== 0){ closeSwipe(wrap); return; }
-    onOpen(card.dataset.id);
+    onOpen(wrap.dataset.id);
   });
 }
 
@@ -1144,35 +1331,205 @@ document.addEventListener("pointerdown", function(e){
   if(openSwipeWrap && !openSwipeWrap.contains(e.target)) closeSwipe(openSwipeWrap);
 });
 
-function bindContentEvents(){
-  document.querySelectorAll(".gear-card").forEach(function(card){
-    var wrap = card.parentElement;
-    if(wrap && wrap.classList.contains("gear-card-wrap")){
-      initSwipeToDelete(card, wrap, openGearDetail);
-    } else {
-      card.addEventListener("click", function(){ openGearDetail(card.dataset.id); });
-    }
+/* Press-and-drag on the revealed handle to reorder the card vertically within its
+   list. Uses position:fixed + a flow placeholder to avoid layout jump, and shifts
+   only the siblings the dragged card has crossed past for the "make room" effect.
+   On drop, persists the new order and switches that list's sort to "Custom". */
+function initReorderHandle(handle, wrap, kind){
+  handle.addEventListener("pointerdown", function(e){
+    if(e.button !== undefined && e.button !== 0) return;
+    e.stopPropagation();
+    e.preventDefault();
+    startReorderDrag(handle, wrap, kind, e);
   });
-  document.querySelectorAll(".gear-card-delete-btn").forEach(function(btn){
-    btn.addEventListener("click", function(e){
-      e.stopPropagation();
-      confirmDeleteGear(btn.dataset.id);
+}
+
+function startReorderDrag(handle, wrap, kind, startEvent){
+  var wrapSelector = kind === "kit" ? ".kit-card-wrap" : ".gear-card-wrap";
+  var container = document.getElementById("content");
+  var siblings = Array.prototype.slice.call(container.querySelectorAll(wrapSelector));
+  var startIndex = siblings.indexOf(wrap);
+  if(startIndex === -1) return;
+
+  var slidingCard = wrap.querySelector(".gear-card, .kit-card");
+  if(slidingCard) slidingCard.style.transform = "translateX(0px)";
+  if(openSwipeWrap === wrap) openSwipeWrap = null;
+
+  var rects = siblings.map(function(s){ return s.getBoundingClientRect(); });
+  var centers = rects.map(function(r){ return r.top + r.height / 2; });
+  var wrapRect = rects[startIndex];
+  var wrapHeight = wrapRect.height;
+  var startY = startEvent.clientY;
+  var draggedCenterY = centers[startIndex];
+
+  var placeholder = document.createElement("div");
+  placeholder.className = "reorder-placeholder";
+  var cs = getComputedStyle(wrap);
+  placeholder.style.height = wrapHeight + "px";
+  placeholder.style.marginBottom = cs.marginBottom;
+  wrap.parentNode.insertBefore(placeholder, wrap);
+
+  wrap.classList.add("reordering");
+  wrap.style.width = wrapRect.width + "px";
+  wrap.style.left = wrapRect.left + "px";
+  wrap.style.top = wrapRect.top + "px";
+
+  try{ handle.setPointerCapture(startEvent.pointerId); }catch(err){}
+
+  function onMove(e){
+    e.preventDefault();
+    var dy = e.clientY - startY;
+    wrap.style.top = (wrapRect.top + dy) + "px";
+    draggedCenterY = centers[startIndex] + dy;
+
+    siblings.forEach(function(s, i){
+      if(i === startIndex) return;
+      var shift = 0;
+      if(i < startIndex){
+        if(draggedCenterY < centers[i]) shift = wrapHeight;
+      } else {
+        if(draggedCenterY > centers[i]) shift = -wrapHeight;
+      }
+      s.style.transition = "transform .15s ease";
+      s.style.transform = shift ? ("translateY(" + shift + "px)") : "";
     });
+  }
+
+  function onUp(){
+    handle.removeEventListener("pointermove", onMove);
+    handle.removeEventListener("pointerup", onUp);
+    handle.removeEventListener("pointercancel", onUp);
+
+    var finalIndex = 0;
+    siblings.forEach(function(s, i){
+      if(i === startIndex) return;
+      if(centers[i] < draggedCenterY) finalIndex++;
+    });
+
+    wrap.classList.remove("reordering");
+    wrap.style.width = ""; wrap.style.left = ""; wrap.style.top = "";
+    siblings.forEach(function(s){ s.style.transition = ""; s.style.transform = ""; });
+    placeholder.remove();
+
+    if(finalIndex !== startIndex){
+      var ids = siblings.map(function(s){ return s.dataset.id; });
+      var draggedId = ids[startIndex];
+      ids.splice(startIndex, 1);
+      ids.splice(finalIndex, 0, draggedId);
+      saveCustomOrder(kind, ids);
+      if(kind === "kit"){
+        state.kitSortBy = "custom";
+        saveSortBy("kit", "custom");
+        document.getElementById("kitSortSelect").value = "custom";
+      } else {
+        state.sortBy = "custom";
+        saveSortBy("gear", "custom");
+        document.getElementById("sortSelect").value = "custom";
+      }
+    }
+    render();
+  }
+
+  handle.addEventListener("pointermove", onMove);
+  handle.addEventListener("pointerup", onUp);
+  handle.addEventListener("pointercancel", onUp);
+}
+
+function renderGearFilterRow(){
+  var filterControls = document.getElementById("gearFilterControls");
+  var toolbar = document.getElementById("gearSelectToolbar");
+  if(state.gearSelectMode){
+    filterControls.style.display = "none";
+    toolbar.style.display = "flex";
+    document.getElementById("gearSelectCount").textContent = tf("toolbarSelectedCount", {n: state.gearSelectedIds.length});
+    document.getElementById("gearSelectDeleteLabel").textContent = t("deleteLabel");
+    document.getElementById("gearSelectDeleteBtn").disabled = state.gearSelectedIds.length === 0;
+    document.getElementById("gearSelectCancelBtn").setAttribute("aria-label", t("cancelLabel"));
+  } else {
+    filterControls.style.display = "flex";
+    toolbar.style.display = "none";
+  }
+}
+function renderKitFilterRow(){
+  var filterControls = document.getElementById("kitFilterControls");
+  var toolbar = document.getElementById("kitSelectToolbar");
+  if(state.kitSelectMode){
+    filterControls.style.display = "none";
+    toolbar.style.display = "flex";
+    document.getElementById("kitSelectCount").textContent = tf("toolbarSelectedCount", {n: state.kitSelectedIds.length});
+    document.getElementById("kitSelectDeleteLabel").textContent = t("deleteLabel");
+    document.getElementById("kitSelectDeleteBtn").disabled = state.kitSelectedIds.length === 0;
+    document.getElementById("kitSelectCancelBtn").setAttribute("aria-label", t("cancelLabel"));
+  } else {
+    filterControls.style.display = "flex";
+    toolbar.style.display = "none";
+  }
+}
+
+function confirmDeleteSelectedGear(){
+  var ids = state.gearSelectedIds.slice();
+  if(ids.length === 0) return;
+  if(!confirm(tf("confirmDeleteSelected", {n: ids.length}))) return;
+  Promise.all(ids.map(function(id){ return dbDelete("gear", id); })).then(function(){
+    var affected = state.kits.filter(function(k){
+      return (k.gearIds||[]).some(function(gid){ return ids.indexOf(gid) !== -1; });
+    });
+    return Promise.all(affected.map(function(k){
+      k.gearIds = k.gearIds.filter(function(gid){ return ids.indexOf(gid) === -1; });
+      return dbPut("kits", k);
+    }));
+  }).then(loadAll).then(function(){
+    state.gearSelectedIds = [];
+    state.gearSelectMode = false;
+    render();
+    toast(t("toastGearDeleted"));
+  });
+}
+function confirmDeleteSelectedKits(){
+  var ids = state.kitSelectedIds.slice();
+  if(ids.length === 0) return;
+  if(!confirm(tf("confirmDeleteSelected", {n: ids.length}))) return;
+  Promise.all(ids.map(function(id){ return dbDelete("kits", id); })).then(loadAll).then(function(){
+    state.kitSelectedIds = [];
+    state.kitSelectMode = false;
+    render();
+    toast(t("toastKitDeleted"));
+  });
+}
+function cancelGearSelect(){ state.gearSelectMode = false; state.gearSelectedIds = []; render(); }
+function cancelKitSelect(){ state.kitSelectMode = false; state.kitSelectedIds = []; render(); }
+
+document.getElementById("gearSelectDeleteBtn").addEventListener("click", confirmDeleteSelectedGear);
+document.getElementById("gearSelectCancelBtn").addEventListener("click", cancelGearSelect);
+document.getElementById("kitSelectDeleteBtn").addEventListener("click", confirmDeleteSelectedKits);
+document.getElementById("kitSelectCancelBtn").addEventListener("click", cancelKitSelect);
+
+function bindContentEvents(){
+  document.querySelectorAll(".gear-card-wrap").forEach(function(wrap){
+    var card = wrap.querySelector(".gear-card");
+    if(card) initCardSwipe(card, wrap, "gear", openGearDetail);
+  });
+  document.querySelectorAll(".gear-card").forEach(function(card){
+    if(card.closest(".gear-card-wrap")) return;
+    card.addEventListener("click", function(){ openGearDetail(card.dataset.id); });
+  });
+
+  document.querySelectorAll(".kit-card-wrap").forEach(function(wrap){
+    var card = wrap.querySelector(".kit-card");
+    if(card) initCardSwipe(card, wrap, "kit", openKitDetail);
   });
   document.querySelectorAll(".kit-card").forEach(function(card){
-    var wrap = card.parentElement;
-    if(wrap && wrap.classList.contains("kit-card-wrap")){
-      initSwipeToDelete(card, wrap, openKitDetail);
-    } else {
-      card.addEventListener("click", function(){ openKitDetail(card.dataset.id); });
-    }
+    if(card.closest(".kit-card-wrap")) return;
+    card.addEventListener("click", function(){ openKitDetail(card.dataset.id); });
   });
-  document.querySelectorAll(".kit-card-delete-btn").forEach(function(btn){
-    btn.addEventListener("click", function(e){
-      e.stopPropagation();
-      confirmDeleteKit(btn.dataset.id);
-    });
+
+  document.querySelectorAll(".card-move-handle").forEach(function(handle){
+    var wrap = handle.closest(".gear-card-wrap") || handle.closest(".kit-card-wrap");
+    if(!wrap) return;
+    var kind = wrap.classList.contains("kit-card-wrap") ? "kit" : "gear";
+    initReorderHandle(handle, wrap, kind);
   });
+
   document.querySelectorAll("[data-open-gear]").forEach(function(row){
     row.addEventListener("click", function(){ openGearDetail(row.dataset.id); });
   });
@@ -1193,6 +1550,12 @@ document.getElementById("searchFieldSelect").addEventListener("change", function
 });
 document.getElementById("sortSelect").addEventListener("change", function(e){
   state.sortBy = e.target.value;
+  saveSortBy("gear", state.sortBy);
+  render();
+});
+document.getElementById("kitSortSelect").addEventListener("change", function(e){
+  state.kitSortBy = e.target.value;
+  saveSortBy("kit", state.kitSortBy);
   render();
 });
 document.getElementById("statusFilterSelect").addEventListener("change", function(e){
@@ -1632,6 +1995,8 @@ function setLanguage(code){
   applyStaticTranslations();
   renderCategoryChips();
   render();
+  renderGearFilterRow();
+  renderKitFilterRow();
   openSettingsSheet();
 }
 
@@ -1719,6 +2084,8 @@ function importBackup(file){
 Promise.all([loadAll(), loadSettings()]).then(function(){
   applyStaticTranslations();
   renderCategoryChips();
+  document.getElementById("sortSelect").value = state.sortBy;
+  document.getElementById("kitSortSelect").value = state.kitSortBy;
   render();
 });
 
