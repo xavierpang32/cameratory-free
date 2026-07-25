@@ -147,6 +147,22 @@
     display:flex; gap:12px; padding:12px; margin-bottom:10px;
     background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-m);
   }
+
+  /* swipe-to-delete on inventory cards */
+  .gear-card-wrap{position:relative; margin-bottom:10px; border-radius:var(--radius-m); overflow:hidden;}
+  .gear-card-wrap .gear-card{margin-bottom:0; position:relative; z-index:2; touch-action:pan-y; will-change:transform;}
+  .gear-card-wrap .gear-card.dragging{transition:none;}
+  .gear-card-wrap .gear-card.snapping{transition:transform .22s ease;}
+  .gear-card-delete-bg{
+    position:absolute; inset:0; z-index:1; border-radius:var(--radius-m);
+    background:var(--red); display:flex; justify-content:flex-end; align-items:stretch;
+  }
+  .gear-card-delete-btn{
+    width:84px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:5px; color:#fff; font-size:11.5px; font-weight:700; background:transparent; border:none;
+  }
+  .gear-card-delete-btn svg{width:19px;height:19px;}
+
   .gear-thumb{
     width:58px;height:58px;border-radius:var(--radius-s); flex-shrink:0;
     background:var(--surface-2); display:flex;align-items:center;justify-content:center;
@@ -481,6 +497,7 @@ en: {
   categoryAll:"All",
   sortAria:"Sort", sortNewest:"Newest", sortOldest:"Oldest", sortNameAsc:"Name A–Z", sortNameDesc:"Name Z–A",
   statusFilterAria:"Filter by status", statusFilterAll:"All Statuses",
+  deleteLabel:"Delete",
   tabInventory:"Inventory", tabKits:"Kits", tabOverview:"Overview", tabAbout:"About",
   addAria:"Add", settingsAria:"Settings",
   emptyNoGearTitle:"No gear logged yet", emptyNoGearBody:"Tap the + button to add your first<br>camera, lens, or accessory.",
@@ -538,6 +555,7 @@ zh: {
   categoryAll:"全部",
   sortAria:"排序", sortNewest:"最新", sortOldest:"最早", sortNameAsc:"名称 A–Z", sortNameDesc:"名称 Z–A",
   statusFilterAria:"按状态筛选", statusFilterAll:"所有状态",
+  deleteLabel:"删除",
   tabInventory:"库存", tabKits:"套装", tabOverview:"概览", tabAbout:"关于",
   addAria:"添加", settingsAria:"设置",
   emptyNoGearTitle:"暂无器材记录", emptyNoGearBody:"点击 + 按钮添加您的第一台<br>相机、镜头或配件。",
@@ -838,6 +856,7 @@ document.querySelectorAll(".tab-btn").forEach(function(b){
 
 function render(){
   var el = document.getElementById("content");
+  openSwipeWrap = null;
   if(state.tab === "inventory") el.innerHTML = renderInventory();
   else if(state.tab === "kits") el.innerHTML = renderKits();
   else if(state.tab === "about") { el.innerHTML = renderAbout(); return; }
@@ -930,14 +949,17 @@ function renderInventory(){
   }
   return list.map(function(g){
     var st = STATUSES.find(function(s){ return s.v === g.status; }) || STATUSES[0];
-    return '<div class="gear-card" data-id="'+g.id+'">'+
-      gearThumbHTML(g)+
-      '<div class="gear-info">'+
-        '<div class="row1"><h4>'+escapeHtml(g.name)+'</h4></div>'+
-        (g.serialNumber ? '<div class="gear-meta">SN '+escapeHtml(g.serialNumber)+'</div>' : '')+
-        '<div class="badge-row">'+
-          '<span class="pill cat">'+escapeHtml(tCat(g.category))+'</span>'+
-          '<span class="pill '+st.cls+'"><span class="dot"></span>'+escapeHtml(tStat(g.status))+'</span>'+
+    return '<div class="gear-card-wrap">'+
+      '<div class="gear-card-delete-bg"><button type="button" class="gear-card-delete-btn" data-id="'+g.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg><span>'+t("deleteLabel")+'</span></button></div>'+
+      '<div class="gear-card" data-id="'+g.id+'">'+
+        gearThumbHTML(g)+
+        '<div class="gear-info">'+
+          '<div class="row1"><h4>'+escapeHtml(g.name)+'</h4></div>'+
+          (g.serialNumber ? '<div class="gear-meta">SN '+escapeHtml(g.serialNumber)+'</div>' : '')+
+          '<div class="badge-row">'+
+            '<span class="pill cat">'+escapeHtml(tCat(g.category))+'</span>'+
+            '<span class="pill '+st.cls+'"><span class="dot"></span>'+escapeHtml(tStat(g.status))+'</span>'+
+          '</div>'+
         '</div>'+
       '</div>'+
     '</div>';
@@ -1029,9 +1051,95 @@ function renderAbout(){
 }
 
 /* ============ content event binding ============ */
+var openSwipeWrap = null;
+var SWIPE_REVEAL = 84;
+
+function closeSwipe(wrap){
+  var c = wrap.querySelector(".gear-card");
+  if(c){ c.classList.add("snapping"); c.style.transform = "translateX(0px)"; }
+  if(openSwipeWrap === wrap) openSwipeWrap = null;
+}
+
+function getCardTranslateX(card){
+  var m = /translateX\((-?\d+(?:\.\d+)?)px\)/.exec(card.style.transform || "");
+  return m ? parseFloat(m[1]) : 0;
+}
+
+function initSwipeToDelete(card, wrap){
+  var startX = null, startY = 0, dragging = null, dragStartOffset = 0, currentX = 0;
+
+  card.addEventListener("pointerdown", function(e){
+    if(e.button !== undefined && e.button !== 0) return;
+    startX = e.clientX; startY = e.clientY;
+    dragStartOffset = getCardTranslateX(card);
+    currentX = dragStartOffset;
+    dragging = null;
+    card.classList.remove("snapping");
+    try{ card.setPointerCapture(e.pointerId); }catch(err){}
+  });
+
+  card.addEventListener("pointermove", function(e){
+    if(startX === null) return;
+    var dx = e.clientX - startX;
+    var dy = e.clientY - startY;
+    if(dragging === null){
+      if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      dragging = Math.abs(dx) > Math.abs(dy);
+      if(dragging && openSwipeWrap && openSwipeWrap !== wrap) closeSwipe(openSwipeWrap);
+    }
+    if(!dragging) return;
+    e.preventDefault();
+    card._dragMoved = true;
+    card.classList.add("dragging");
+    var next = dragStartOffset + dx;
+    if(next > 0) next = 0;
+    if(next < -SWIPE_REVEAL) next = -SWIPE_REVEAL;
+    currentX = next;
+    card.style.transform = "translateX(" + next + "px)";
+  });
+
+  function endDrag(){
+    if(dragging){
+      card.classList.remove("dragging");
+      card.classList.add("snapping");
+      if(currentX < -SWIPE_REVEAL/2){
+        card.style.transform = "translateX(-" + SWIPE_REVEAL + "px)";
+        openSwipeWrap = wrap;
+      } else {
+        card.style.transform = "translateX(0px)";
+        if(openSwipeWrap === wrap) openSwipeWrap = null;
+      }
+    }
+    startX = null; dragging = null;
+  }
+  card.addEventListener("pointerup", endDrag);
+  card.addEventListener("pointercancel", endDrag);
+
+  card.addEventListener("click", function(){
+    if(card._dragMoved){ card._dragMoved = false; return; }
+    if(getCardTranslateX(card) !== 0){ closeSwipe(wrap); return; }
+    openGearDetail(card.dataset.id);
+  });
+}
+
+document.addEventListener("pointerdown", function(e){
+  if(openSwipeWrap && !openSwipeWrap.contains(e.target)) closeSwipe(openSwipeWrap);
+});
+
 function bindContentEvents(){
   document.querySelectorAll(".gear-card").forEach(function(card){
-    card.addEventListener("click", function(){ openGearDetail(card.dataset.id); });
+    var wrap = card.parentElement;
+    if(wrap && wrap.classList.contains("gear-card-wrap")){
+      initSwipeToDelete(card, wrap);
+    } else {
+      card.addEventListener("click", function(){ openGearDetail(card.dataset.id); });
+    }
+  });
+  document.querySelectorAll(".gear-card-delete-btn").forEach(function(btn){
+    btn.addEventListener("click", function(e){
+      e.stopPropagation();
+      confirmDeleteGear(btn.dataset.id);
+    });
   });
   document.querySelectorAll(".kit-card").forEach(function(card){
     card.addEventListener("click", function(){ openKitDetail(card.dataset.id); });
