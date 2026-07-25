@@ -65,9 +65,10 @@
   .brand-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
   .brand{display:flex;align-items:center;gap:10px;}
   .brand svg{width:26px;height:26px;flex-shrink:0;}
-  .brand-text{display:flex;flex-direction:column;line-height:1.05;}
-  .brand-text b{font-size:17px;letter-spacing:0.2px;}
-  .brand-text span{font-size:10.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1.6px;font-family:var(--font-mono);}
+  .brand-text{display:flex;flex-direction:row;align-items:baseline;gap:7px;line-height:1.05;}
+  .brand-text b{font-size:17px;letter-spacing:0.2px;white-space:nowrap;}
+  .brand-text span{font-size:10.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1.6px;font-family:var(--font-mono);white-space:nowrap;}
+  .brand-text span::before{content:"·";margin-right:7px;color:var(--border);}
   .icon-btn{
     width:38px;height:38px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;
@@ -104,15 +105,14 @@
   }
   .chip.active{background:var(--accent); border-color:var(--accent); color:#12241a; font-weight:600;}
 
-  .filter-row{display:flex; align-items:center; gap:8px;}
-  .filter-row .chip-row{flex:1; min-width:0;}
-  #sortSelect{
-    flex-shrink:0; padding:6px 11px;
+  .sort-row{display:flex; justify-content:flex-end; gap:8px; margin-top:8px;}
+  #sortSelect, #statusFilterSelect{
+    flex-shrink:0; min-width:0; padding:6px 11px;
     background:var(--surface); border:1px solid var(--border); border-radius:100px;
     color:var(--text-dim); font-size:11.5px; font-family:var(--font-mono);
     color-scheme:dark;
   }
-  #sortSelect:focus{outline:2px solid var(--accent-dim); border-color:var(--accent);}
+  #sortSelect:focus, #statusFilterSelect:focus{outline:2px solid var(--accent-dim); border-color:var(--accent);}
 
   /* ---------- Tab bar ---------- */
   nav.tabbar{
@@ -366,11 +366,11 @@
   <header class="topbar">
     <div class="brand-row">
       <div class="brand">
-        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10.5" stroke="var(--accent)" stroke-width="1.6"/><circle cx="12" cy="12" r="5.2" stroke="var(--accent)" stroke-width="1.6"/><circle cx="12" cy="12" r="1.6" fill="var(--accent)"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="13" rx="2.2"/><circle cx="12" cy="13.4" r="4"/><path d="M8.5 7L10 4.3h4L15.5 7"/></svg>
         <div class="brand-text"><b>Kit Log</b><span>Gear Inventory</span></div>
       </div>
       <button class="icon-btn" id="settingsBtn" aria-label="Settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="4.2"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
     </div>
     <div id="searchArea">
@@ -385,8 +385,16 @@
           <option value="location">Location</option>
         </select>
       </div>
-      <div class="filter-row">
-        <div class="chip-row" id="categoryChips"></div>
+      <div class="chip-row" id="categoryChips"></div>
+      <div class="sort-row">
+        <select id="statusFilterSelect" aria-label="Filter by status">
+          <option value="All" selected>All Statuses</option>
+          <option value="In Storage">In Storage</option>
+          <option value="In Use">In Use</option>
+          <option value="On Loan">On Loan</option>
+          <option value="In Repair">In Repair</option>
+          <option value="Retired / Sold">Retired / Sold</option>
+        </select>
         <select id="sortSelect" aria-label="Sort">
           <option value="createdDesc" selected>Newest</option>
           <option value="createdAsc">Oldest</option>
@@ -472,6 +480,7 @@ en: {
   searchPh_name:"Search by name…", searchPh_serialNumber:"Search by serial number…", searchPh_location:"Search by location…",
   categoryAll:"All",
   sortAria:"Sort", sortNewest:"Newest", sortOldest:"Oldest", sortNameAsc:"Name A–Z", sortNameDesc:"Name Z–A",
+  statusFilterAria:"Filter by status", statusFilterAll:"All Statuses",
   tabInventory:"Inventory", tabKits:"Kits", tabOverview:"Overview", tabAbout:"About",
   addAria:"Add", settingsAria:"Settings",
   emptyNoGearTitle:"No gear logged yet", emptyNoGearBody:"Tap the + button to add your first<br>camera, lens, or accessory.",
@@ -528,6 +537,7 @@ zh: {
   searchPh_name:"按名称搜索…", searchPh_serialNumber:"按序列号搜索…", searchPh_location:"按位置搜索…",
   categoryAll:"全部",
   sortAria:"排序", sortNewest:"最新", sortOldest:"最早", sortNameAsc:"名称 A–Z", sortNameDesc:"名称 Z–A",
+  statusFilterAria:"按状态筛选", statusFilterAll:"所有状态",
   tabInventory:"库存", tabKits:"套装", tabOverview:"概览", tabAbout:"关于",
   addAria:"添加", settingsAria:"设置",
   emptyNoGearTitle:"暂无器材记录", emptyNoGearBody:"点击 + 按钮添加您的第一台<br>相机、镜头或配件。",
@@ -681,6 +691,7 @@ var state = {
   searchField: "name",
   sortBy: "createdDesc",
   categoryFilter: "All",
+  statusFilter: "All",
   formPhotos: [],
   formServices: [],
   editingGearId: null,
@@ -796,6 +807,11 @@ function applyStaticTranslations(){
   sortSel.options[2].textContent = t("sortNameAsc");
   sortSel.options[3].textContent = t("sortNameDesc");
 
+  var statusSel = document.getElementById("statusFilterSelect");
+  statusSel.setAttribute("aria-label", t("statusFilterAria"));
+  statusSel.options[0].textContent = t("statusFilterAll");
+  STATUSES.forEach(function(s, i){ statusSel.options[i+1].textContent = tStat(s.v); });
+
   updateSearchPlaceholder();
 }
 function setTabLabel(btn, label){
@@ -883,7 +899,9 @@ function sortGearList(list){
 function filteredGear(){
   var q = state.search.trim().toLowerCase();
   var inCategory = state.gear.filter(function(g){
-    return state.categoryFilter === "All" || g.category === state.categoryFilter;
+    var catOk = state.categoryFilter === "All" || g.category === state.categoryFilter;
+    var statusOk = state.statusFilter === "All" || g.status === state.statusFilter;
+    return catOk && statusOk;
   });
   if(!q) return sortGearList(inCategory);
   var matched = inCategory.filter(function(g){
@@ -997,7 +1015,7 @@ function renderOverview(){
 function renderAbout(){
   return ''+
   '<div class="about-hero">'+
-    '<svg viewBox="0 0 24 24" fill="none" style="margin:0 auto;display:block;"><circle cx="12" cy="12" r="10.5" stroke="var(--accent)" stroke-width="1.6"/><circle cx="12" cy="12" r="5.2" stroke="var(--accent)" stroke-width="1.6"/><circle cx="12" cy="12" r="1.6" fill="var(--accent)"/></svg>'+
+    '<svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto;display:block;"><rect x="2.5" y="7" width="19" height="13" rx="2.2"/><circle cx="12" cy="13.4" r="4"/><path d="M8.5 7L10 4.3h4L15.5 7"/></svg>'+
     '<h2>Kit Log</h2>'+
     '<div class="tagline">'+t("appTagline")+'</div>'+
     '<div class="version">'+t("aboutVersion")+' 1.0</div>'+
@@ -1005,7 +1023,7 @@ function renderAbout(){
   '<p class="about-desc">'+t("aboutDescription")+'</p>'+
   '<div class="section-label">'+t("aboutCreditsLabel")+'</div>'+
   '<div class="about-credits">'+
-    '<a href="https://github.com/xavierpang32/kitlog-free" target="_blank" rel="noopener noreferrer" class="about-link">https://github.com/xavierpang32/kitlog-free</a>'+
+    '<a href="https://github.com/xavierpang32/kitlog-free" target="_blank" rel="noopener noreferrer" class="about-link">github.com/xavierpang32/kitlog-free</a>'+
     '<div class="about-copyright">Kit Log™ 2026</div>'+
   '</div>';
 }
@@ -1038,6 +1056,10 @@ document.getElementById("searchFieldSelect").addEventListener("change", function
 });
 document.getElementById("sortSelect").addEventListener("change", function(e){
   state.sortBy = e.target.value;
+  render();
+});
+document.getElementById("statusFilterSelect").addEventListener("change", function(e){
+  state.statusFilter = e.target.value;
   render();
 });
 
