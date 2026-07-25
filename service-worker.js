@@ -1,5 +1,5 @@
-// Kit Log — offline app-shell cache
-var CACHE_NAME = "kitlog-cache-v1";
+// Camera-tory — offline app-shell cache
+var CACHE_NAME = "Camera-tory-cache-v1";
 var ASSETS = [
   "./",
   "./index.html",

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1C1D21">
-<title>Kit Log — Camera Gear Tracker</title>
+<title>Camera-tory — Camera Gear Tracker</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
@@ -440,7 +440,7 @@
     <div class="brand-row">
       <div class="brand">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="13" rx="2.2"/><circle cx="12" cy="13.4" r="4"/><path d="M8.5 7L10 4.3h4L15.5 7"/></svg>
-        <div class="brand-text"><b>Kit Log</b><span>Gear Inventory</span></div>
+        <div class="brand-text"><b>Camera-tory</b><span>Gear Inventory</span></div>
       </div>
       <button class="icon-btn" id="settingsBtn" aria-label="Settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
@@ -578,7 +578,7 @@ var LANGUAGES = [
 
 var TRANSLATIONS = {
 en: {
-  appTagline:"Gear Inventory", appTitleFull:"Kit Log — Camera Gear Tracker",
+  appTagline:"Gear Inventory", appTitleFull:"Camera-tory — Camera Gear Tracker",
   searchFieldName:"Name", searchFieldSerial:"Serial", searchFieldLocation:"Location", searchFieldAria:"Search field",
   searchPh_name:"Search by name…", searchPh_serialNumber:"Search by serial number…", searchPh_location:"Search by location…",
   categoryAll:"All",
@@ -628,17 +628,17 @@ en: {
   exportBackup:"Export backup (.json)", importBackup:"Import backup (.json)",
   privacyNote:"All data — including photos — is stored only on this device. Export a backup now and then so you never lose it if you clear browser data or switch phones.",
   toastBackupDownloaded:"Backup downloaded", toastBackupImported:"Backup imported",
-  toastInvalidJson:"That file isn't valid JSON", toastNotKitLogBackup:"That doesn't look like a Kit Log backup",
+  toastInvalidJson:"That file isn't valid JSON", toastNotKitLogBackup:"That doesn't look like a Camera-tory backup",
   confirmImport:"Import will add {g} gear item(s) and {k} kit(s), merging with what you already have. Continue?",
   languageLabel:"Language",
-  aboutDescription:"Kit Log helps you track every piece of camera gear you own — bodies, lenses, cards, and accessories — along with condition photos, service history, and ready-to-grab kits for different shoots.",
+  aboutDescription:"Camera-tory helps you track every piece of camera gear you own — bodies, lenses, cards, and accessories — along with condition photos, service history, and ready-to-grab kits for different shoots.",
   aboutVersion:"Version", aboutCreditsLabel:"Credits",
   categories:{"Camera Body":"Camera Body","Lens":"Lens","Flash / Lighting":"Flash / Lighting","Tripod / Support":"Tripod / Support","SD Card / Storage":"SD Card / Storage","Film":"Film","Battery":"Battery","Filter":"Filter","Bag / Case":"Bag / Case","Accessory":"Accessory","Other":"Other"},
   conditions:{"New":"New","Like New":"Like New","Excellent":"Excellent","Good":"Good","Fair":"Fair","Poor":"Poor","Needs Repair":"Needs Repair"},
   statuses:{"In Storage":"In Storage","In Use":"In Use","On Loan":"On Loan","In Repair":"In Repair","Retired / Sold":"Retired / Sold"}
 },
 zh: {
-  appTagline:"器材库存", appTitleFull:"Kit Log — 相机器材追踪器",
+  appTagline:"器材库存", appTitleFull:"Camera-tory — 相机器材追踪器",
   searchFieldName:"名称", searchFieldSerial:"序列号", searchFieldLocation:"位置", searchFieldAria:"搜索字段",
   searchPh_name:"按名称搜索…", searchPh_serialNumber:"按序列号搜索…", searchPh_location:"按位置搜索…",
   categoryAll:"全部",
@@ -688,10 +688,10 @@ zh: {
   exportBackup:"导出备份 (.json)", importBackup:"导入备份 (.json)",
   privacyNote:"所有数据（包括照片）仅存储在此设备上。请定期导出备份，以免在清除浏览器数据或更换手机时丢失数据。",
   toastBackupDownloaded:"备份已下载", toastBackupImported:"备份已导入",
-  toastInvalidJson:"该文件不是有效的 JSON", toastNotKitLogBackup:"这似乎不是 Kit Log 的备份文件",
+  toastInvalidJson:"该文件不是有效的 JSON", toastNotKitLogBackup:"这似乎不是 Camera-tory 的备份文件",
   confirmImport:"导入将添加 {g} 件器材和 {k} 个套装，并与现有数据合并。是否继续？",
   languageLabel:"语言",
-  aboutDescription:"Kit Log 帮助您追踪所拥有的每一件相机器材 — 机身、镜头、存储卡和配件 — 并记录状况照片、维修保养记录，以及为不同拍摄场景准备好的套装。",
+  aboutDescription:"Camera-tory 帮助您追踪所拥有的每一件相机器材 — 机身、镜头、存储卡和配件 — 并记录状况照片、维修保养记录，以及为不同拍摄场景准备好的套装。",
   aboutVersion:"版本", aboutCreditsLabel:"鸣谢",
   categories:{"Camera Body":"相机机身","Lens":"镜头","Flash / Lighting":"闪光灯/灯光","Tripod / Support":"三脚架/支架","SD Card / Storage":"SD卡/存储","Film":"胶卷","Battery":"电池","Filter":"滤镜","Bag / Case":"背包/收纳盒","Accessory":"配件","Other":"其他"},
   conditions:{"New":"全新","Like New":"几乎全新","Excellent":"极佳","Good":"良好","Fair":"一般","Poor":"较差","Needs Repair":"需要维修"},
@@ -1213,7 +1213,7 @@ function renderAbout(){
   return ''+
   '<div class="about-hero">'+
     '<svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto;display:block;"><rect x="2.5" y="7" width="19" height="13" rx="2.2"/><circle cx="12" cy="13.4" r="4"/><path d="M8.5 7L10 4.3h4L15.5 7"/></svg>'+
-    '<h2>Kit Log</h2>'+
+    '<h2>Camera-tory</h2>'+
     '<div class="tagline">'+t("appTagline")+'</div>'+
     '<div class="version">'+t("aboutVersion")+' 1.0</div>'+
   '</div>'+
@@ -1221,7 +1221,7 @@ function renderAbout(){
   '<div class="section-label">'+t("aboutCreditsLabel")+'</div>'+
   '<div class="about-credits">'+
     '<a href="https://github.com/xavierpang32/kitlog-free" target="_blank" rel="noopener noreferrer" class="about-link">github.com/xavierpang32/kitlog-free</a>'+
-    '<div class="about-copyright">Kit Log™ 2026</div>'+
+    '<div class="about-copyright">Camera-tory™ 2026</div>'+
   '</div>';
 }
 
@@ -2041,7 +2041,7 @@ function openSettingsSheet(){
 function exportBackup(){
   var payload = {
     exportedAt: new Date().toISOString(),
-    app: "kitlog",
+    app: "Camera-tory",
     version: 1,
     gear: state.gear,
     kits: state.kits
@@ -2050,7 +2050,7 @@ function exportBackup(){
   var url = URL.createObjectURL(blob);
   var a = document.createElement("a");
   a.href = url;
-  a.download = "kitlog-backup-" + new Date().toISOString().slice(0,10) + ".json";
+  a.download = "Camera-tory-backup-" + new Date().toISOString().slice(0,10) + ".json";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

@@ -1,6 +1,6 @@
 {
-  "name": "Kit Log — Camera Gear Tracker",
-  "short_name": "Kit Log",
+  "name": "Camera-tory — Camera Gear Tracker",
+  "short_name": "Camera-tory",
   "description": "Track your camera gear inventory, condition, service history, and build combo kits for different shoots.",
   "start_url": "./index.html",
   "scope": "./",
