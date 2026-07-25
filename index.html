@@ -1688,7 +1688,7 @@ function renderPhotoStrip(){
   var html = state.formPhotos.map(function(p, idx){
     return '<div class="photo-thumb"><img src="'+p+'"><button type="button" data-idx="'+idx+'" class="removePhoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>';
   }).join("");
-  html += '<div class="add-photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5A1.5 1.5 0 015.5 7h1.6l1-1.6A1.5 1.5 0 019.4 4.6h5.2a1.5 1.5 0 011.3.8l1 1.6h1.6A1.5 1.5 0 0120 8.5v9A1.5 1.5 0 0118.5 19h-13A1.5 1.5 0 014 17.5v-9z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>'+t("photoAdd")+'</span><input type="file" accept="image/*" capture="environment" id="photoInput"></div>';
+  html += '<div class="add-photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5A1.5 1.5 0 015.5 7h1.6l1-1.6A1.5 1.5 0 019.4 4.6h5.2a1.5 1.5 0 011.3.8l1 1.6h1.6A1.5 1.5 0 0120 8.5v9A1.5 1.5 0 0118.5 19h-13A1.5 1.5 0 014 17.5v-9z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>'+t("photoAdd")+'</span><input type="file" accept="image/*" id="photoInput"></div>';
   wrap.innerHTML = html;
   wrap.querySelectorAll(".removePhoto").forEach(function(btn){
     btn.addEventListener("click", function(){
