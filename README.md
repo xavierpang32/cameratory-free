@@ -46,7 +46,7 @@ Once hosted, installation works exactly like Option A — open your own URL in C
 
 **Settings (☰ icon, top right)** — switch the app's language (English or 简体中文 Simplified Chinese), export a full JSON backup (including photos), or import one back in. Since all data lives only in this browser/device, it's worth exporting a backup occasionally — especially before clearing browser data or switching phones. This matters a bit more on iOS: Safari is historically stricter than Chrome about evicting site storage after long inactivity, though apps added to the home screen are exempted from its more aggressive cutoffs. Either way, an occasional backup is cheap insurance.
 
-**About tab** — app info, version, and a credits section linking to this project's page ([xavierpang32.github.io/cameratory-free](https://xavierpang32.github.io/cameratory-free/)).
+**About tab** — app info, version, and a credits section linking to this project's GitHub repo ([github.com/xavierpang32/cameratory-free](https://github.com/xavierpang32/cameratory-free/)).
 
 ## Notes on photos
 Tapping "Add" on a photo opens your camera directly (or your gallery, depending on your phone). Photos are automatically resized and compressed before saving so your gear list stays fast even with lots of items.

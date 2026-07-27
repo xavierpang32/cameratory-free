@@ -81,13 +81,13 @@
   .search-row{display:flex; gap:8px; margin-bottom:12px;}
   .search-wrap{position:relative; flex:1; min-width:0;}
   .search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--text-faint);}
-  #searchInput{
+  #searchInput, #kitPickSearch{
     width:100%; padding:11px 14px 11px 38px;
     background:var(--surface); border:1px solid var(--border);
     border-radius:var(--radius-m); color:var(--text); font-size:14.5px;
   }
-  #searchInput::placeholder{color:var(--text-faint);}
-  #searchInput:focus{outline:2px solid var(--accent-dim); border-color:var(--accent);}
+  #searchInput::placeholder, #kitPickSearch::placeholder{color:var(--text-faint);}
+  #searchInput:focus, #kitPickSearch:focus{outline:2px solid var(--accent-dim); border-color:var(--accent);}
   #searchFieldSelect{
     flex-shrink:0; width:92px; padding:0 8px;
     background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-m);
@@ -1229,7 +1229,7 @@ function renderAbout(){
   '<p class="about-desc">'+t("aboutDescription")+'</p>'+
   '<div class="section-label">'+t("aboutCreditsLabel")+'</div>'+
   '<div class="about-credits">'+
-    '<a href="https://github.com/xavierpang32/cameratory-free" target="_blank" rel="noopener noreferrer" class="about-link">github.com/xavierpang32/cameratory-free</a>'+
+    '<a href="https://github.com/xavierpang32/cameratory-free/" target="_blank" rel="noopener noreferrer" class="about-link">github.com/xavierpang32/cameratory-free</a>'+
     '<div class="about-copyright">Camera-tory™ 2026</div>'+
   '</div>';
 }
